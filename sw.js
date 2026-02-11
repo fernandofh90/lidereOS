@@ -24,8 +24,8 @@ self.addEventListener('fetch', (event) => {
           return response;
         }
 
-        return fetch(event.request).then(
-          (response) => {
+        return fetch(event.request)
+          .then((response) => {
             // Check if we received a valid response
             if (!response || response.status !== 200 || response.type !== 'basic' && response.type !== 'cors') {
               return response;
@@ -43,8 +43,14 @@ self.addEventListener('fetch', (event) => {
               });
 
             return response;
-          }
-        );
+          })
+          .catch(() => {
+             // Fallback for navigation: if network fails and not in cache, try serving index.html
+             // This fixes issues where "start_url" might not match the cache key exactly but index.html exists
+             if (event.request.mode === 'navigate') {
+                return caches.match('./index.html');
+             }
+          });
       })
   );
 });
